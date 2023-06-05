@@ -7,6 +7,7 @@ const $searchForm = $("#searchForm");
 
 const API_TVMAZE_BASE = "https://api.tvmaze.com";
 const TVMAZE_SEARCH_ENDPOINT = '/search/shows';
+const DEFAULT_IMAGE_URL = "https://tinyurl.com/tv-missing"
 
 
 /** Given a search term, search for tv shows that match that query.
@@ -38,7 +39,7 @@ type getShowResponse = {
 };
 
 async function getShowsByTerm(term: string) {
-  const { data, status } = await axios.get<getShowResponse>(
+  const { data, status } = await axios.get<ShowData[]>(
     `${API_TVMAZE_BASE}${TVMAZE_SEARCH_ENDPOINT}`,
     {
       headers: {
@@ -50,18 +51,22 @@ async function getShowsByTerm(term: string) {
     }
   );
 
-  const shows = data.shows.map(showData => showData.show)
-  console.log(data.shows)
+  const shows = data.map(showData => showData.show)
+  console.log(shows)
   shows.forEach(show => {
     if (typeof show.image === 'string') {
       // Handle the case where show.image is a string
       // You can choose an appropriate default value or handle it differently
-      show.image = 'default-image-url';
+      show.image = DEFAULT_IMAGE_URL;
+    } else if (show.image === null) {
+      show.image = DEFAULT_IMAGE_URL;
     } else {
       // show.image is an Image object
       show.image = show.image.medium;
     }
   });
+
+  console.log(shows)
 
   return shows
 }
@@ -95,7 +100,7 @@ function populateShows(shows) {
       `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
+              src=${show.image}
               alt="Bletchly Circle San Francisco"
               class="w-25 me-3">
            <div class="media-body">
